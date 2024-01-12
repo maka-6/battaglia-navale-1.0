@@ -4,23 +4,31 @@
 	Data: 9/9/2023
 */
 
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
 #define r 23
 #define c 23
 
+char mat[r][c];
 
-void inizializzaCampo ( char campo[][c] ){
-	
+void disegnaCampo ( char campo[][c] ){
+
 	int i, j;
 	
-	// inizializza la matrice con carattere 0 ASCII
-	memset( campo, ' ', sizeof(r));
+	for ( i = 0; i < r; i++ ){
+		for ( j = 0; j < c; j++ ){
+			
+			campo[i][j] = mat[i][j];
+		}
+	}
 
-    char lett = 'A', num = '1'; // convertono i numeri in caratteri num = numeri e lett = alfabetici
+    char letter = 'A', num = '1'; // convertono i numeri in caratteri num = numeri e letter = alfabetici
+    
+    // inizializza la matrice con carattere 0 ASCII
+    for (int k = 0; k < r; ++k) {
+        for (int l = 0; l < c; ++l) {
+
+            campo[k][l] = ' ';
+        }
+    }
     
     
     // scrivo lettere e numeri
@@ -30,11 +38,10 @@ void inizializzaCampo ( char campo[][c] ){
 		num++;
 		
 	    // assegno le lettere alle posizioni verticali
-	    campo[i][0] = lett;
-	    lett++;
+	    campo[i][0] = letter;
+        letter++;
 	}
 	campo[1][21] = 'X';// X sostituisce il 10 essendo una stringa
-	
 	
 	// creo i bordi
 	for ( i = 3; i < r - 1; i+=2 ){
@@ -60,10 +67,10 @@ void inizializzaCampo ( char campo[][c] ){
 			
 		}
 	}
+
 	// creo gli angoli
 	campo[2][2] = 218;
 	campo[22][2] = 192;
 	campo[22][22] = 217;
 	campo[2][22] = 191;
-	
 }

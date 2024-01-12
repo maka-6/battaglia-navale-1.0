@@ -18,13 +18,26 @@
 #include <ctype.h>
 #include <string.h>
 #include <time.h>
+#include <conio.h>
+#include <tchar.h>
 #include "campo.c"
+//#include "SDL2/SDL.h"
 
+#define ANSI_COLOR_RED     "\x1b[31m"
+#define ANSI_COLOR_RESET   "\x1b[0m"
 
 #define r 23
 #define c 23
-#define DIM 50
 
+/*
+SDL_Init(SDL_INIT_VIDEO);
+int WINAPI WinMain(
+        _In_ HINSTANCE hInstance,
+        _In_opt_ HINSTANCE hPrevInstance,
+        _In_ LPSTR     lpCmdLine,
+        _In_ int       nCmdShow
+);
+*/
 
 // partite giocate
 int score = 0;
@@ -74,30 +87,22 @@ typedef struct part{
 // genera il campo
 void campoDiGioco( tab **ptesta, int s ){
 
-	int i, j, g, l;
+	int i, j, g;
 	
 	tab *ptemp = NULL;
 	
     printf("\nGenerazione del campo...");
     
-    for( g = 0; g < s; g++ ){// genera i campi richiesti
+    for( g = 0; g < s; g++ ){// genera nv campi richiesti
     	
     	ptemp = (tab*) malloc(sizeof(tab)); // Allocazione di un nuovo nodo per ptemp
     	
-    	inizializzaCampo( ptemp->campo );
-    	
-    	for( j = 0; j < c; j++ ){
-        	printf("%s\n", ptemp->campo[j]);
-        
-    	}
+    	disegnaCampo( ptemp->campo );
 		
 		// array che contiene le navi
 		oggetto item[14];
-		
+
 		char indice = 48;// indice univoco per ogni nave, parte da 0 = 48 in ASCII
-	
-		// numero di navi
-		int nv = 0;
 
         // genero una matrice per gli indici
 		for ( i = 0; i < r; i++ ){
@@ -108,64 +113,58 @@ void campoDiGioco( tab **ptesta, int s ){
 		}
 	
 	    printf("\nCreo le navi...");
-	    
-	    i = 0;
-	    
-	    // crea le navi nel campo
-	    while( i < 13 ){
-	    	
-	    	// verifica che ci sia spazio per la nave
-		    int v = 0;
-		    
-		    item[i].dim = rand() % 4 + 1; // dimensione da 1 a 4
-		    item[i].verso = rand() % 2; // verso 1 o 0
 
-            // array contenenti le celle vuote
-		    const int arr[10] = { 3,5,7,9,11,13,15,17,19,21 };
+        // numero di navi
+        int nv = 0;
+
+        // array contenenti le celle vuote
+        const int arr[10] = { 3,5,7,9,11,13,15,17,19,21 };
+
+	    // crea le navi nel campo
+	    while( nv < 13 ){
+		    
+		    item[nv].dim = ( rand() % 4 ) + 1; // dimensione da 1 a 4
+		    item[nv].verso = rand() % 2; // verso 1 o 0
 		    
 			// coordinate da 0 a 9
-			int nx = rand() % 10; 
-	    	int ny = rand() % 10;
-	    	
 	    	// coordinate di una nave
-	    	item[i].x = arr[nx]; // assegno x
-	    	item[i].y = arr[ny]; // assegno y
+	    	item[nv].x = arr[ rand() % 10 ]; // assegno x
+	    	item[nv].y = arr[ rand() % 10 ]; // assegno y
 
-		    int x = item[i].x;
-		    int y = item[i].y;
-		    
+		    int x = item[nv].x;
+		    int y = item[nv].y;
+
+            // verifica che ci sia spazio per la nave
+            int v = 0;
+
 		    // verifico che le celle siano vuote
-		    for ( j = 0; j < item[i].dim; j++ ){
-		    	
-                if ( item[i].verso == 1 && ptemp->campo[x][y] == ' ' ){
+		    for ( j = 0; j < item[nv].dim; j++ ){
 
-                    if ( ( item[i].dim + x )<= 23 ){
+                if ( item[nv].verso == 1 ) {
+
+                    if (  ptemp->campo[x][y] == ' ' && item[nv].dim + x  < c ){
 
                         x += 2;
                         v++;
+
                     }
 
-                } else if ( item[i].verso == 0 && ptemp->campo[x][y] == ' ' ){
+                } else if ( ptemp->campo[x][y] == ' ' && item[nv].dim + y < r ){
 
-                    if ( ( item[i].dim + y )<= 23 ){
-
-                        y += 2;
-                        v++;
-                    }
+                    y += 2;
+                    v++;
                 }
 		    }
-			
+
 		    // controllo che lo spazio sia sufficiente per la nave
-	        if ( v == item[i].dim ){
-	        	
-	            nv++; // incremento il numero di navi
+	        if ( v == item[nv].dim ){
 	            
-	        	x = item[i].x;
-	        	y = item[i].y;
+	        	x = item[nv].x;
+	        	y = item[nv].y;
 	        	
-	        	if ( item[i].verso == 1 ){// stampo le navi verticalmente
+	        	if ( item[nv].verso == 1 ){// stampo le navi verticalmente
 		        	
-		        	if ( item[i].dim == 4 ){
+		        	if ( item[nv].dim == 4 ){
 		        		
 		        		ptemp->campo[x][y] = 194;
 		        		ptemp->cont[x][y] = indice;
@@ -179,7 +178,7 @@ void campoDiGioco( tab **ptesta, int s ){
 		        		ptemp->campo[x][y] = 25;
 		        		ptemp->cont[x][y] = indice;
 		        		
-					} else if ( item[i].dim == 3 ){
+					} else if ( item[nv].dim == 3 ){
 						
 						ptemp->campo[x][y] = 194;
 						ptemp->cont[x][y] = indice;
@@ -190,7 +189,7 @@ void campoDiGioco( tab **ptesta, int s ){
 		        		ptemp->campo[x][y] = 25;
 		        		ptemp->cont[x][y] = indice;
 		        		
-					} else if ( item[i].dim == 2 ){
+					} else if ( item[nv].dim == 2 ){
 						
 						ptemp->campo[x][y] = 194;
 						ptemp->cont[x][y] = indice;
@@ -207,53 +206,53 @@ void campoDiGioco( tab **ptesta, int s ){
 					
 					indice++;
 		        	
-		        } else if ( item[i].verso == 0 ){// stampo le navi orizzontalmente
-		        	
-		        	if ( item[i].dim == 4 ){
-		        		
-		        		ptemp->campo[x][y] = 195;
-		        		ptemp->cont[x][y] = indice;
-		        		y += 2;
-		        		ptemp->campo[x][y] = 196;
-		        		ptemp->cont[x][y] = indice;
-		        		y += 2;
-		        		ptemp->campo[x][y] = 196;
-		        		ptemp->cont[x][y] = indice;
-		        		y += 2;
-		        		ptemp->campo[x][y] = 26;
-		        		ptemp->cont[x][y] = indice;
-		        		
-					} if ( item[i].dim == 3 ){
-						
-						ptemp->campo[x][y] = 195;
-						ptemp->cont[x][y] = indice;
-		        		y += 2;
-		        		ptemp->campo[x][y] = 196;
-		        		ptemp->cont[x][y] = indice;
-		        		y += 2;
-		        		ptemp->campo[x][y] = 26;
-		        		ptemp->cont[x][y] = indice;
-		        		
-					} if ( item[i].dim == 2 ){
-						
-						ptemp->campo[x][y] = 195;
-						ptemp->cont[x][y] = indice;
-		        		y += 2;
-		        		ptemp->campo[x][y] = 26;
-		        		ptemp->cont[x][y] = indice;
-		        		
-					} else{
-						
-						ptemp->campo[x][y] = 26;
-						ptemp->cont[x][y] = indice;
-					}
-					
-					indice++;
-				}
-				i++;
+		        } else if ( item[nv].verso == 0 ) {// stampo le navi orizzontalmente
+
+                    if (item[nv].dim == 4) {
+
+                        ptemp->campo[x][y] = 195;
+                        ptemp->cont[x][y] = indice;
+                        y += 2;
+                        ptemp->campo[x][y] = 196;
+                        ptemp->cont[x][y] = indice;
+                        y += 2;
+                        ptemp->campo[x][y] = 196;
+                        ptemp->cont[x][y] = indice;
+                        y += 2;
+                        ptemp->campo[x][y] = 26;
+                        ptemp->cont[x][y] = indice;
+
+                    }
+                    if (item[nv].dim == 3) {
+
+                        ptemp->campo[x][y] = 195;
+                        ptemp->cont[x][y] = indice;
+                        y += 2;
+                        ptemp->campo[x][y] = 196;
+                        ptemp->cont[x][y] = indice;
+                        y += 2;
+                        ptemp->campo[x][y] = 26;
+                        ptemp->cont[x][y] = indice;
+
+                    }
+                    if (item[nv].dim == 2) {
+
+                        ptemp->campo[x][y] = 195;
+                        ptemp->cont[x][y] = indice;
+                        y += 2;
+                        ptemp->campo[x][y] = 26;
+                        ptemp->cont[x][y] = indice;
+
+                    } else {
+
+                        ptemp->campo[x][y] = 26;
+                        ptemp->cont[x][y] = indice;
+                    }
+
+                    indice++;
+                }
+                nv++;
 	        }
-	        
-	        v = 0;
 		}
 		
 		ptemp->nv = nv;
@@ -276,15 +275,13 @@ void affondaNave( tab *ptemp, int x, int y ){
 	char s;
 	
 	if ( ptemp->campo[x][y] == 'X' || ptemp->campo[x][y] == 'O' ){
-		
+
 		printf("\nHai gia colpito questo punto");
 			
-	} else if ( ptemp->cont[i][j] >= 48 && ptemp->cont[i][j] <= 61 ){
+	} else if ( ptemp->cont[x][y] >= 48 && ptemp->cont[x][y] <= 61 ){
 		
 		// Assegna il carattere 'X' solo dopo la verifica
     	ptemp->campo[x][y] = 'X';
-
-    	printf("\nHai colpito una nave");
 		
 		s = ptemp->cont[x][y];
 		
@@ -305,8 +302,6 @@ void affondaNave( tab *ptemp, int x, int y ){
 		}
 		
 		if ( len == t ){
-			
-			printf("\nUna nave e' stata abbattuta");
 			
 			ptemp->nv--;
 		}
@@ -332,11 +327,14 @@ void giocatore( tab **ptesta ,char xx, int y ){
 	}
 	
 	// parametrizzo y in intero
-	int n;
+	int n = 0;
+
 	if ( y > 0 && y < 11 ){
+
 		n = ( y + y ) + 1;
 		
 	} else {
+
 		printf("\nCoordinate non valide");
 	}
 	
@@ -349,8 +347,6 @@ void giocatore( tab **ptesta ,char xx, int y ){
 			affondaNave( ptemp, x, y );
 			
 		} else {
-			
-			printf("\nColpo a vuoto :(");
 			
 			ptemp->campo[x][y] = 'O';
 		}
@@ -366,24 +362,25 @@ void giocatore( tab **ptesta ,char xx, int y ){
 void computer( tab **ptesta ){
 	
 	tab *ptemp = (*ptesta);
-	
-	int n1 = rand() % 10;
-	int n2 = rand() % 10;
+
+    int x, y;
 	
 	const int xx[10] = { 3,5,7,9,11,13,15,17,19,21 };
 	const int yy[10] = { 3,5,7,9,11,13,15,17,19,21 };
-	
-	int x = xx[n1], y = yy[n2];
+
+    do{
+
+        x = xx[ rand() % 10 ];
+        y = yy[ rand() % 10 ];
+
+    }while( ptemp->campo[x][y] == 'X' || ptemp->campo[x][y] == 'O' );
+
 	
 	if ( ptemp->campo[x][y] != ' ' ){
-		
-		printf("\nIl computer ti ha colpito VENDICATI!!");
 		
 		affondaNave( ptemp, x, y );
 		
 	} else {
-		
-		printf("\nColpo a vuoto dal computer!!");
 		
 		ptemp->campo[x][y] = 'O';
 	}
@@ -411,12 +408,12 @@ int salva( tab *ptesta ){
     	part *pTemp = NULL;
     	
     	printf("\nInserisci il tuo nome campione\n-> ");
-    	fflush(stdin);
     	gets(str);
+        fflush(stdin);
 			
 		while( i != score ){
 		
-			pTemp = (part*)malloc(sizeof(part)); // Allocazione di un nuovo nodo
+			pTemp = ( part* ) malloc(sizeof( part ) ); // Allocazione di un nuovo nodo
 			
 			strcpy( pTemp->vincitore, str );
 			
@@ -424,8 +421,8 @@ int salva( tab *ptesta ){
 			pTemp->nvG = ptemp->nv; // assegno il numero di navi
 			
 			fprintf( pfile, "\nVincitore: %s", pTemp->vincitore );
-			fprintf( pfile, "\nNavi rimaste alla cpu: %d", pTemp->nvC );
-			fprintf( pfile, "\nNavi rimaste al giocatore: %d", pTemp->nvG );
+			fprintf( pfile, "\nNavi rimaste al computer: %d", pTemp->nvC );
+			fprintf( pfile, "\nNavi rimaste a %s: %d", str,pTemp->nvG );
 			
 			pTemp->pnext = pTesta;
 			
@@ -446,8 +443,8 @@ int salva( tab *ptesta ){
 }
 
 
-// stampa un messagio
-void stmp( int ver ){
+// stampa un messaggio
+void messaggio( int ver ){
 	
 	
 	if ( ver == 1 ){
@@ -470,58 +467,64 @@ void stmp( int ver ){
 }
 
 
+void stampa( tab *ptesta ){
+
+    int i, j;
+
+    tab *ptemp = ptesta;
+
+    // stampo il campo del giocatore
+    printf("\n\n\t\t\t\t\tIl tuo Campo:\t\t\t\t  Campo del computer:");
+    for( i = 0; i < r; i++ ){
+
+        printf("\t\t\t\t");
+
+        // Stampare il campo del giocatore
+        for( j = 0; j < c; j++ ){
+
+            printf(/*ANSI_COLOR_RED*/"%c"/*ANSI_COLOR_RESET*/, ptemp->campo[i][j]);
+        }
+
+        // Separatore tra i due campi
+        printf("\t\t\t\t");
+
+        // Stampare il campo del computer in una seconda matrice
+        ptemp = ptemp->pnext;
+
+        for( j = 0; j < c; j++ ){
+
+            if( ptemp->cont[i][j] >= 48 && ptemp->cont[i][j] <= 62 && ptemp->cont[i][j] != ptemp->campo[i][j] && ptemp->campo[i][j] != 'X' ){
+
+                //ptemp->campo[i][j] = ' ';
+                printf(" ");
+            } else {
+
+                printf(/*ANSI_COLOR_RED*/"%c"/*ANSI_COLOR_RESET*/, ptemp->campo[i][j]);
+            }
+
+        }
+
+        printf("\n");
+        ptemp = ptesta;
+    }
+    ptemp = ptesta;
+}
+
+
 // inizializza il gioco
 int gioco( tab *ptesta ){
 	
 	campoDiGioco( &ptesta, 2 );
-	
+
 	tab *ptemp = ptesta;
-	
-	char tentativi[r][c];
     
     printf("\nGioca!! ");
-    
-    int i = 0, j;
     
     int fine = 0;
 	
 	do{ // loop game
-	
-		// stampo il campo del giocatore
-		printf("\n\n\t\t\t\tIl tuo Campo:\t\t\t\t  Campo del computer:");
-		for( i = 0; i < r; i++ ){
-			
-        	printf("\t\t\t\t");
-        	
-	        // Stampare il campo del giocatore
-	        for( j = 0; j < c; j++ ){
-	            printf("%c", ptemp->campo[i][j]);
-	            
-	        }
-	
-	        // Separatore tra i due campi
-	        printf("\t\t\t\t");
-	
-	        // Stampare il campo del computer in una seconda matrice
-	        ptemp = ptemp->pnext;
-	        
-	        for( j = 0; j < c; j++ ){
-			
-				tentativi[i][j] = ptemp->campo[i][j];
-	        	
-	            if( ( ptemp->cont[i][j] >= 48 && ptemp->cont[i][j] <= 62 ) && ( i > 1 ) && ( ptemp->campo[i][j] != 'X' || ptemp->campo[i][j] != 'O' )){
-	            	
-	                tentativi[i][j] = ' ';
-	                
-	            }
-	            printf("%c", tentativi[i][j]);
-	        }
-	
-	        printf("\n");
-	        ptemp = ptesta;
-    	}
-		ptemp = ptesta;
-		
+
+        stampa( ptesta );
 		// prendo le coordinate
 		printf("\n\t\t\t\t\tHai %d navi rimaste", ptemp->nv);
 		ptemp = ptemp->pnext;
@@ -534,7 +537,7 @@ int gioco( tab *ptesta ){
 		printf("\n\t\t\t\t\t -> ");
     	scanf(" %c",&xx);
     	scanf("%d",&y);
-    	
+
     	if( xx < 65 || xx > 122 ){
     		
     		printf("\nInserisci delle coordinate sensate");
@@ -565,14 +568,13 @@ int gioco( tab *ptesta ){
 			
 			score++;
 		}
-		
 	}while( !fine );
 	
-	if ( fine ){
+	if ( fine == 1 ){
 		
 		int ver = salva( ptesta );
 		
-		stmp( ver );
+		messaggio( ver );
 	}
 	
 	printf("ADDIO PAZZOIDE");
@@ -590,12 +592,9 @@ void menu(){
 	
 	// memorizza la scelta dell'utente
 	int s;
-
-    tab campo[r];
 	
 	/*
-	
-		questo pezzo di codice fara pare della futura implementazione del multiplayer
+    questo pezzo di codice fara pare della futura implementazione del multiplayer
     int n;
 
 	printf("\nQuanti giocatori siete? ");
@@ -604,8 +603,6 @@ void menu(){
     */
     
     tab *ptesta = NULL;
-    
-    int n = 2;
     
     do {
     	
@@ -667,12 +664,12 @@ void menu(){
 
 // funzione principale
 int main(){
-	
+
 	printf("\nCaricamento...");
-	
+
 	srand(time(NULL));
-	
+
 	menu();
-	
+
 	return 0;
 }
